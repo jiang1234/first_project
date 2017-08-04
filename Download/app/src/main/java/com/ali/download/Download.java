@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -44,12 +45,14 @@ public class Download extends AppCompatActivity {
             public void handleMessage(Message m){
                 switch(m.what){
                     case -2:
-                        Toast.makeText(Download.this,"读取文件失败",Toast.LENGTH_SHORT).show();break;
+                        //Toast.makeText(Download.this,"读取文件失败",Toast.LENGTH_SHORT).show();
+                        break;
                     case -1:
                         Toast.makeText(Download.this,"下载失败",Toast.LENGTH_SHORT).show();break;
                     case 0:
                         downloadBar.setProgress(downloadState);
-                        Toast.makeText(Download.this,"下载中",Toast.LENGTH_SHORT).show();break;
+                        //Log.i("Getdata",String.valueOf (downloadState));
+                        break;
                     case 1:
                         downloadBar.setProgress(downloadState);
                         Toast.makeText(Download.this,"下载成功",Toast.LENGTH_SHORT).show();
@@ -67,7 +70,7 @@ public class Download extends AppCompatActivity {
                     @Override
                     public void run(){
                         URL url;
-                        Message m = handler.obtainMessage();
+
                         try {
                             String sourceUrl = "http://117.169.16.25/imtt.dd.qq.com/16891/1FA1EBDA2BCA25BD8A395DB91DF92B83.apk?mkey=597f642287b880d2&f=e301&c=0&fsname=com.snda.wifilocating_4.2.12_3132.apk&csr=1bbd&p=.apk";
                             url = new URL(sourceUrl);
@@ -78,35 +81,48 @@ public class Download extends AppCompatActivity {
                                 String fileName = Uri.parse(sourceUrl).getQueryParameter("fsname");
                                 //文件大小
                                 int fileLength = urlConn.getContentLength();
+                                Log.i("fileLength",String.valueOf (fileLength));
                                 File file = new File(getApplicationContext().getCacheDir(), fileName);
                                 FileOutputStream fos = new FileOutputStream(file);
-                                byte buf[] = new byte[128];
+                                byte buf[] = new byte[1024];
+                                int sumRead = 0;
                                 //读取文件到输出流
                                 while(true) {
                                     int numread = is.read(buf);
                                     if(numread<=0){
-                                        m.what = -2;
-                                        handler.sendMessage(m);
+                                        Message readFileWrongM = handler.obtainMessage();
+                                        readFileWrongM.what = -2;
+                                        handler.sendMessage(readFileWrongM);
                                         break;
                                     } else{
                                         fos.write(buf,0,numread);
-                                        downloadState += numread/fileLength*100;
-                                        m.what = 0;
-                                        handler.sendMessage(m);
+                                        sumRead += numread;
+                                        //Log.i("numread",String.valueOf (numread));
+                                        downloadState = sumRead*100/fileLength;
+                                        Log.i("downloadState",String.valueOf (downloadState));
+                                        Message downloadStateM = handler.obtainMessage();
+                                        downloadStateM.what = 0;
+                                        handler.sendMessage(downloadStateM);
                                     }
                                 }
                             }
                             is.close();
                             urlConn.disconnect();
-                            m.what = 1;
+                            Message downloadFinishM = handler.obtainMessage();
+                            downloadFinishM.what = 1;
+                            handler.sendMessage(downloadFinishM);
                         } catch (MalformedURLException e){
                             e.printStackTrace();
-                            m.what = -1;
+                            Message downloadWrongM = handler.obtainMessage();
+                            downloadWrongM.what = -1;
+                            handler.sendMessage(downloadWrongM);
                         } catch (IOException e){
                             e.printStackTrace();
-                            m.what = -1;
+                            Message downloadWrongM = handler.obtainMessage();
+                            downloadWrongM.what = -1;
+                            handler.sendMessage(downloadWrongM);
                         }
-                        handler.sendMessage(m);
+
                     }
                 });
                 DownloadThread.start();
