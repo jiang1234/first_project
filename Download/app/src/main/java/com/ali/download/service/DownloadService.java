@@ -3,6 +3,7 @@ package com.ali.download.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.ali.download.db.Dao;
@@ -22,6 +23,7 @@ public class DownloadService extends Service{
     private final static String ACTION_PAUSE="pause download";
     private Dao downloadDao;
     private ThreadInfo threadInfo, iniThreadInfo;
+    private DownloadThread downloadThread;
     @Override
     public IBinder onBind(Intent intent){
         return null;
@@ -33,25 +35,29 @@ public class DownloadService extends Service{
         if(ACTION_START == intent.getAction()){
             //判断是否存在此线程
             List downloadList = downloadDao.findThreadInfo(fileInfo.getUrl());
+            Log.i("线程数量",String.valueOf(downloadList.size()));
             //如果不存在则添加
             if(downloadList.size() == 0){
+                Log.i("添加失败","添加失败1");
                 long addResult = downloadDao.insertThreadInfo(fileInfo.getUrl(),fileInfo.getPath(),fileInfo.getStart(),fileInfo.getFinish(),fileInfo.getLength());
                 if(addResult == -1){
                     Toast.makeText(this,"添加失败",Toast.LENGTH_SHORT).show();
+                    Log.i("添加失败","添加失败");
                 } else{
                     Toast.makeText(this,"添加到第"+addResult+"行",Toast.LENGTH_SHORT).show();
+                    Log.i("添加","添加");
                 }
-                iniThreadInfo = new ThreadInfo(fileInfo.getUrl(),fileInfo.getPath(),fileInfo.getStart(),fileInfo.getFinish(),fileInfo.getLength());
+                threadInfo = new ThreadInfo(fileInfo.getUrl(),fileInfo.getPath(),fileInfo.getStart(),fileInfo.getFinish(),fileInfo.getLength());
             }
             //存在，则读取最新的一条
             else{
-                threadInfo = (ThreadInfo) downloadList.get(downloadList.size());
+                threadInfo = (ThreadInfo) downloadList.get(downloadList.size()-1);
             }
-            DownloadThread downloadThread = new DownloadThread(threadInfo, this);
+            downloadThread = new DownloadThread(threadInfo, this);
             downloadThread.start();
         }
         if(ACTION_PAUSE == intent.getAction()){
-
+            downloadThread.setIsPause(true);
         }
         return super.onStartCommand(intent,flags,startId);
     }

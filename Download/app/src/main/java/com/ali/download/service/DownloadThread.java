@@ -3,6 +3,7 @@ package com.ali.download.service;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
 import com.ali.download.db.Dao;
 import com.ali.download.entites.ThreadInfo;
@@ -29,18 +30,23 @@ public class DownloadThread extends Thread{
     private int fileLength;
     private int finish;
     private int sumread = 0;
+    public void setIsPause(boolean isPause){
+        this.isPause = isPause;
+    }
     public DownloadThread(ThreadInfo threadInfo, Context context){
         this.threadInfo = threadInfo;
         this.ThreadInfoDao = new Dao(context);
     }
     @Override
     public void run(){
+        Log.i("开始线程","开始线程");
         String sourceUrl = threadInfo.getUrl();
         try {
             URL url = new URL(sourceUrl);
             HttpURLConnection urlConn = (HttpURLConnection)url.openConnection();
             start = threadInfo.getStart() + threadInfo.getFinish();
-
+            Log.i("start",String.valueOf(sourceUrl));
+            Log.i("fileLength1",String.valueOf(urlConn.getContentLength()));
             //取得的线程中是否有文件有关的信息，若有直接读取，否则初始化
             if(threadInfo.getLength() == 0)
             {
@@ -48,7 +54,11 @@ public class DownloadThread extends Thread{
             } else{
                 fileLength = threadInfo.getLength();
             }
+            urlConn.setConnectTimeout(5 * 1000);
+            urlConn.setRequestMethod("GET");
+            Log.i("fileLength",String.valueOf(urlConn.getContentLength()));
             urlConn.setRequestProperty("Range","bytes=" + start + "-" + fileLength);
+            Log.i("getResponseCode",String.valueOf(urlConn.getResponseCode()));
             if(urlConn.getResponseCode() == HttpURLConnection.HTTP_OK){
                 //连接正常
                 InputStream is = urlConn.getInputStream();

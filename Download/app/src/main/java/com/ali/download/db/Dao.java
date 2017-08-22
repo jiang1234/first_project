@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
 import com.ali.download.entites.ThreadInfo;
 
 import java.util.ArrayList;
@@ -28,10 +30,10 @@ public class Dao {
     //第二部，编写对应的添加/删除/查找的方法
     public long insertThreadInfo (String url, String path, int start, int finish, int length){
         SQLiteDatabase sqLiteDatabase = dbhelper.getWritableDatabase();
-        ContentValues values = null;
+        ContentValues values = new ContentValues();
         values.put("url",url);
         values.put("path",path);
-        values.put("strat",start);
+        values.put("start",start);
         values.put("finish",finish);
         values.put("length",length);
         long result = sqLiteDatabase.insert("ThreadInfo",null,values);

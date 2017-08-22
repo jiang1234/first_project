@@ -76,7 +76,7 @@ public class Download extends AppCompatActivity implements OnClickListener{
 
         //获取文件名
         String fileName = Uri.parse(sourceUrl).getQueryParameter("fsname");
-        FileInfo fileInfo = new FileInfo(sourceUrl,fileName,getApplicationContext().getCacheDir().getPath(),0,0);
+        FileInfo fileInfo = new FileInfo(sourceUrl,fileName,getApplicationContext().getCacheDir().getPath(),0,0,0);
         intent = new Intent();
         intent.putExtra("fileInfo",fileInfo);
         intent.setClass(Download.this, DownloadService.class);
@@ -87,6 +87,7 @@ public class Download extends AppCompatActivity implements OnClickListener{
             case R.id.download:
                 intent.setAction(ACTION_START);
                 startService(intent);
+                Log.i("开启服务","开启服务");
                 break;
             case R.id.pause:
                 intent.setAction(ACTION_PAUSE);
