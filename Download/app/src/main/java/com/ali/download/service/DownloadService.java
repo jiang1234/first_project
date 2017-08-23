@@ -36,6 +36,7 @@ public class DownloadService extends Service{
             //判断是否存在此线程
             List downloadList = downloadDao.findThreadInfo(fileInfo.getUrl());
             Log.i("线程数量",String.valueOf(downloadList.size()));
+            Log.i("名字1",fileInfo.getPath());
             //如果不存在则添加
             if(downloadList.size() == 0){
                 Log.i("添加失败","添加失败1");
@@ -52,6 +53,8 @@ public class DownloadService extends Service{
             //存在，则读取最新的一条
             else{
                 threadInfo = (ThreadInfo) downloadList.get(downloadList.size()-1);
+                Log.i("url",threadInfo.getUrl());
+                Log.i("path",threadInfo.getPath());
             }
             downloadThread = new DownloadThread(threadInfo, this);
             downloadThread.start();

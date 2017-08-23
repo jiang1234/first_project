@@ -39,7 +39,7 @@ public class Download extends AppCompatActivity implements OnClickListener{
     public Button download, pause;
     private ProgressBar downloadBar;
     private int downloadState = 0;
-    private String sourceUrl = "http://117.169.16.25/imtt.dd.qq.com/16891/1FA1EBDA2BCA25BD8A395DB91DF92B83.apk?mkey=597f642287b880d2&f=e301&c=0&fsname=com.snda.wifilocating_4.2.12_3132.apk&csr=1bbd&p=.apk";
+    private String sourceUrl = "http://app.mi.com/download/12339";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,8 +75,9 @@ public class Download extends AppCompatActivity implements OnClickListener{
         pause.setOnClickListener(this);
 
         //获取文件名
-        String fileName = Uri.parse(sourceUrl).getQueryParameter("fsname");
+        String fileName = null;
         FileInfo fileInfo = new FileInfo(sourceUrl,fileName,getApplicationContext().getCacheDir().getPath(),0,0,0);
+        Log.i("名字",getApplicationContext().getCacheDir().getPath());
         intent = new Intent();
         intent.putExtra("fileInfo",fileInfo);
         intent.setClass(Download.this, DownloadService.class);

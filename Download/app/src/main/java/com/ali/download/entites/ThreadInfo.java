@@ -26,6 +26,10 @@ public class ThreadInfo {
     public void setUrl(String url){
         this.url = url;
     }
+    public void setPath(String path) {this.path = path;}
+    public void setStart(int start){this.start = start;}
+    public void setFinish(int finish){this.finish = finish;}
+    public void setLength(int length){this.length = length;}
     public String getUrl(){
         return this.url;
     }

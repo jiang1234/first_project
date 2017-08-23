@@ -54,6 +54,10 @@ public class Dao {
         while (cursor.moveToNext()){
             ThreadInfo threadInfo = new ThreadInfo();
             threadInfo.setUrl(cursor.getString(cursor.getColumnIndex("url")));
+            threadInfo.setPath(cursor.getString(cursor.getColumnIndex("path")));
+            threadInfo.setStart(cursor.getInt(cursor.getColumnIndex("start")));
+            threadInfo.setFinish(cursor.getInt(cursor.getColumnIndex("finish")));
+            threadInfo.setLength(cursor.getInt(cursor.getColumnIndex("length")));
             list.add(threadInfo);
         }
         cursor.close();

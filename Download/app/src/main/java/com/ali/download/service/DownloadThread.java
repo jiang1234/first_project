@@ -46,7 +46,7 @@ public class DownloadThread extends Thread{
             HttpURLConnection urlConn = (HttpURLConnection)url.openConnection();
             start = threadInfo.getStart() + threadInfo.getFinish();
             Log.i("start",String.valueOf(sourceUrl));
-            Log.i("fileLength1",String.valueOf(urlConn.getContentLength()));
+            //Log.i("fileLength1",String.valueOf(urlConn.getContentLength()));
             //取得的线程中是否有文件有关的信息，若有直接读取，否则初始化
             if(threadInfo.getLength() == 0)
             {
@@ -54,16 +54,22 @@ public class DownloadThread extends Thread{
             } else{
                 fileLength = threadInfo.getLength();
             }
-            urlConn.setConnectTimeout(5 * 1000);
-            urlConn.setRequestMethod("GET");
-            Log.i("fileLength",String.valueOf(urlConn.getContentLength()));
-            urlConn.setRequestProperty("Range","bytes=" + start + "-" + fileLength);
+            //Log.i("fileLength",String.valueOf(urlConn.getContentLength()));
+            //
             Log.i("getResponseCode",String.valueOf(urlConn.getResponseCode()));
-            if(urlConn.getResponseCode() == HttpURLConnection.HTTP_OK){
+            if(urlConn.getResponseCode() == 200){
+                
+            }
+            if(urlConn.getResponseCode() == 206){
                 //连接正常
+                urlConn.setRequestProperty("Range","bytes=" + start + "-" + fileLength);
+                Log.i("getResponseCode1",threadInfo.getPath());
                 InputStream is = urlConn.getInputStream();
                 File path = new File(threadInfo.getPath());
-                File file = new File(path, Uri.parse(sourceUrl).getQueryParameter("fsname"));
+                URL absurl = urlConn.getURL();
+                String fileName = absurl.getFile();
+                Log.i("fileName",fileName);
+                File file = new File(path, fileName);
                 RandomAccessFile raf = new RandomAccessFile(file, "rwd") ;
                 raf.seek(start);
                 //finish = threadInfo.getFinish();
@@ -71,6 +77,7 @@ public class DownloadThread extends Thread{
 
                 while (!isPause){
                     int numread = is.read(buf);
+                    Log.i("numread",String.valueOf(numread));
                     if(numread ==-1) {
                         break;
                     }else{
