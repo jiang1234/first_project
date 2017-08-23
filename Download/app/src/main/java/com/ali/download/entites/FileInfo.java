@@ -42,4 +42,5 @@ public class FileInfo implements Serializable{
     public int getStart(){
         return this.start;
     }
+    public void setLength(int length){this.length = length;}
 }

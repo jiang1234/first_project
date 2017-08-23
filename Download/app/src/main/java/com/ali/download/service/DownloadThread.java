@@ -3,8 +3,11 @@ package com.ali.download.service;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 
+import com.ali.download.Download;
 import com.ali.download.db.Dao;
 import com.ali.download.entites.ThreadInfo;
 
@@ -30,12 +33,20 @@ public class DownloadThread extends Thread{
     private int fileLength;
     private int finish;
     private int sumread = 0;
+    private Message message = null;
     public void setIsPause(boolean isPause){
         this.isPause = isPause;
     }
+    public  DownloadThread(){}
     public DownloadThread(ThreadInfo threadInfo, Context context){
         this.threadInfo = threadInfo;
         this.ThreadInfoDao = new Dao(context);
+    }
+    public Message getMessage(){
+        return message;
+    }
+    public int getSumread(){
+        return this.sumread;
     }
     @Override
     public void run(){
@@ -56,18 +67,20 @@ public class DownloadThread extends Thread{
             }
             //Log.i("fileLength",String.valueOf(urlConn.getContentLength()));
             //
+            //Log.i("getResponseCode",String.valueOf(urlConn.getResponseCode()));
+            urlConn.setRequestProperty("Range","bytes=" + start + "-" + fileLength);
             Log.i("getResponseCode",String.valueOf(urlConn.getResponseCode()));
-            if(urlConn.getResponseCode() == 200){
-                
-            }
+            //urlConn调用之后函数的操作不能在setRequestProperty之前，要不然会说不能在conn连接打开之后进行setRequestProperty
+            //调用了setRequestProperty后ResponseCode变为206
             if(urlConn.getResponseCode() == 206){
                 //连接正常
-                urlConn.setRequestProperty("Range","bytes=" + start + "-" + fileLength);
+
                 Log.i("getResponseCode1",threadInfo.getPath());
                 InputStream is = urlConn.getInputStream();
                 File path = new File(threadInfo.getPath());
                 URL absurl = urlConn.getURL();
-                String fileName = absurl.getFile();
+                //String fileName = absurl.getFile();
+                String fileName = "1.apk";
                 Log.i("fileName",fileName);
                 File file = new File(path, fileName);
                 RandomAccessFile raf = new RandomAccessFile(file, "rwd") ;
@@ -83,6 +96,8 @@ public class DownloadThread extends Thread{
                     }else{
                         raf.write(buf,0,numread);
                         sumread += numread;
+                        //message.what = 1;
+                        //message.arg1 = sumread*100/fileLength;
                     }
                 }
                 if(isPause){
@@ -99,6 +114,5 @@ public class DownloadThread extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        super.run();
     }
 }

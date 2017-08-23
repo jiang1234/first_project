@@ -1,11 +1,16 @@
 package com.ali.download;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -40,7 +45,38 @@ public class Download extends AppCompatActivity implements OnClickListener{
     private ProgressBar downloadBar;
     private int downloadState = 0;
     private String sourceUrl = "http://app.mi.com/download/12339";
+    private FileInfo fileInfo;
 
+    Messenger Rmessenger = new Messenger(new Handler(){
+        @Override
+        public void handleMessage(Message message){
+            if(message.what == 1){
+                downloadBar.setProgress(message.arg1);
+            }
+        }
+    });
+    Messenger Smessenger;
+    //重写ServiceConnection
+    ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Smessenger = new Messenger(iBinder);
+            Message Rmessage = Message.obtain();
+            Rmessage.what = 2;
+            Rmessage.replyTo = Rmessenger;
+            try{
+                Smessenger.send(Rmessage);
+            }catch (RemoteException e){
+                e.printStackTrace();;
+            }
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            Log.i("disconnected","disconnected");
+        }
+    };
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,26 +84,7 @@ public class Download extends AppCompatActivity implements OnClickListener{
 
         downloadBar = (ProgressBar)findViewById(R.id.downloadBar);
 
-        handler = new Handler(){
-            @Override
-            public void handleMessage(Message m){
-                switch(m.what){
-                    case -2:
-                        //Toast.makeText(Download.this,"读取文件失败",Toast.LENGTH_SHORT).show();
-                        break;
-                    case -1:
-                        Toast.makeText(Download.this,"下载失败",Toast.LENGTH_SHORT).show();break;
-                    case 0:
-                        downloadBar.setProgress(downloadState);
-                        //Log.i("Getdata",String.valueOf (downloadState));
-                        break;
-                    case 1:
-                        downloadBar.setProgress(downloadState);
-                        Toast.makeText(Download.this,"下载成功",Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        };
+
         //下载按钮点击事件
         download = (Button) findViewById(R.id.download);
         pause = (Button) findViewById(R.id.pause);
@@ -76,23 +93,28 @@ public class Download extends AppCompatActivity implements OnClickListener{
 
         //获取文件名
         String fileName = null;
-        FileInfo fileInfo = new FileInfo(sourceUrl,fileName,getApplicationContext().getCacheDir().getPath(),0,0,0);
+        fileInfo = new FileInfo(sourceUrl,fileName,getApplicationContext().getCacheDir().getPath(),0,0,0);
         Log.i("名字",getApplicationContext().getCacheDir().getPath());
         intent = new Intent();
-        intent.putExtra("fileInfo",fileInfo);
+
         intent.setClass(Download.this, DownloadService.class);
     }
     @Override
     public void onClick(View v){
         switch (v.getId()){
             case R.id.download:
+                intent.putExtra("fileInfo",fileInfo);
                 intent.setAction(ACTION_START);
                 startService(intent);
                 Log.i("开启服务","开启服务");
+                bindService(intent,serviceConnection,Context.BIND_AUTO_CREATE);
                 break;
             case R.id.pause:
+                intent.putExtra("fileInfo",fileInfo);
                 intent.setAction(ACTION_PAUSE);
                 startService(intent);
+                Log.i("暂停服务","暂停服务");
+                bindService(intent,serviceConnection,Context.BIND_AUTO_CREATE);
                 break;
         }
     }
