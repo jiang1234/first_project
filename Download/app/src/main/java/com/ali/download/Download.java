@@ -38,19 +38,24 @@ import java.net.URL;
 public class Download extends AppCompatActivity implements OnClickListener{
     private final static String ACTION_START="start download";
     private final static String ACTION_PAUSE="pause download";
+    private final static String ACTION_DELETE = "delete download";
+    private final static String ACTION_REDOWNLOAD = "redownload";
     private Intent intent;
     private boolean flag = false;
     private Handler handler;
-    public Button download, pause;
+    public Button download, pause, delete, redownload;
     private ProgressBar downloadBar;
     private int downloadState = 0;
     private String sourceUrl = "http://app.mi.com/download/12339";
     private FileInfo fileInfo;
+    private final static int SEND = 1;
+    private final static int REVICER = 2;
+    private final static int INIT = 0;
 
     Messenger Rmessenger = new Messenger(new Handler(){
         @Override
         public void handleMessage(Message message){
-            if(message.what == 1){
+            if(message.what == SEND){
                 downloadBar.setProgress(message.arg1);
             }
         }
@@ -62,7 +67,7 @@ public class Download extends AppCompatActivity implements OnClickListener{
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             Smessenger = new Messenger(iBinder);
             Message Rmessage = Message.obtain();
-            Rmessage.what = 2;
+            Rmessage.what = REVICER;
             Rmessage.replyTo = Rmessenger;
             try{
                 Smessenger.send(Rmessage);
@@ -88,8 +93,12 @@ public class Download extends AppCompatActivity implements OnClickListener{
         //下载按钮点击事件
         download = (Button) findViewById(R.id.download);
         pause = (Button) findViewById(R.id.pause);
+        delete = (Button) findViewById(R.id.delete);
+        redownload = (Button) findViewById(R.id.redownload);
         download.setOnClickListener(this);
         pause.setOnClickListener(this);
+        delete.setOnClickListener(this);
+        redownload.setOnClickListener(this);
 
         //获取文件名
         String fileName = null;
@@ -114,6 +123,18 @@ public class Download extends AppCompatActivity implements OnClickListener{
                 intent.setAction(ACTION_PAUSE);
                 startService(intent);
                 Log.i("暂停服务","暂停服务");
+                bindService(intent,serviceConnection,Context.BIND_AUTO_CREATE);
+                break;
+            case R.id.delete:
+                intent.putExtra("fileInfo",fileInfo);
+                intent.setAction(ACTION_DELETE);
+                startService(intent);
+                bindService(intent,serviceConnection,Context.BIND_AUTO_CREATE);
+                break;
+            case R.id.redownload:
+                intent.putExtra("fileInfo",fileInfo);
+                intent.setAction(ACTION_REDOWNLOAD);
+                startService(intent);
                 bindService(intent,serviceConnection,Context.BIND_AUTO_CREATE);
                 break;
         }

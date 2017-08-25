@@ -43,7 +43,7 @@ public class InitDownloadThread extends Thread {
                 File path = new File(threadInfo.getPath());
                 URL absurl = urlConn.getURL();
                 //String fileName = absurl.getFile();
-                String fileName = "1.apk";
+                String fileName = absurl.getFile().substring(absurl.getFile().lastIndexOf("/")+1,absurl.getFile().length());
                 Log.i("fileName",fileName);
                 File file = new File(path, fileName);
                 RandomAccessFile raf = new RandomAccessFile(file,"rwd");
