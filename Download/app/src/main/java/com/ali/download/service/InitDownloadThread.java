@@ -29,10 +29,14 @@ public class InitDownloadThread extends Thread {
         this.threadInfo = threadInfo;
         this.handler = handler;
     }
+    private long start = 0;
+    private int sumread = 0;
+
+
     @Override
     public void run(){
         try{
-            Log.i("init_thread","1");
+            Log.i("init_thread","200");
             String sourceUel = threadInfo.getUrl();
             URL url = new URL(sourceUel);
             HttpURLConnection urlConn = (HttpURLConnection)url.openConnection();
@@ -46,14 +50,23 @@ public class InitDownloadThread extends Thread {
                 String fileName = absurl.getFile().substring(absurl.getFile().lastIndexOf("/")+1,absurl.getFile().length());
                 Log.i("fileName",fileName);
                 File file = new File(path, fileName);
-                RandomAccessFile raf = new RandomAccessFile(file,"rwd");
-                raf.setLength(fileLength);
-                raf.close();
+                Log.i("fileexistInit",String.valueOf(file.exists()));
+                if(file.exists()){
+                    start = file.length();
+                    Log.i("start init",String.valueOf(file.length()));
+                    sumread = (int)start;
+                }
+                threadInfo.setStart(start);
+                //RandomAccessFile raf = new RandomAccessFile(file,"rwd");
+                //raf.setLength(fileLength);
+                //raf.close();
                 urlConn.disconnect();
                 Message message = Message.obtain();
                 message.obj = threadInfo;
                 message.what = 0;
+                message.arg1 = sumread;
                 handler.sendMessage(message);
+
             }
         }
         catch(MalformedURLException e){

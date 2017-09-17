@@ -12,14 +12,14 @@ public class FileInfo implements Serializable{
     private String url;
     private String fileName;
     private String path;
-    private int start;
-    private int finish;
-    private int length;
+    private long start;
+    private long finish;
+    private long length;
 
     public FileInfo(){
 
     }
-    public FileInfo(String url,String fileName,String path,int start, int finish,int length){
+    public FileInfo(String url,String fileName,String path,long start, long finish,long length){
         this.url = url;
         this.fileName = fileName;
         this.path = path;
@@ -33,14 +33,14 @@ public class FileInfo implements Serializable{
     public String getPath(){
         return this.path;
     }
-    public int getFinish(){
+    public long getFinish(){
         return this.finish;
     }
-    public int getLength(){
+    public long getLength(){
         return this.length;
     }
-    public int getStart(){
+    public long getStart(){
         return this.start;
     }
-    public void setLength(int length){this.length = length;}
+    public void setLength(long length){this.length = length;}
 }

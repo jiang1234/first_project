@@ -28,7 +28,7 @@ public class Dao {
         dbhelper = new dbHelper(context);
     }
     //第二部，编写对应的添加/删除/查找的方法
-    public long insertThreadInfo (String url, String path, int start, int finish, int length){
+    public long insertThreadInfo (String url, String path, long start, long finish, long length){
         SQLiteDatabase sqLiteDatabase = dbhelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("url",url);
@@ -64,7 +64,7 @@ public class Dao {
         sqLiteDatabase.close();
         return list;
     }
-    public void updateThreadInfo (int start,int finish,String url){
+    public void updateThreadInfo (long start,long finish,String url){
         SQLiteDatabase db = dbhelper.getWritableDatabase();
         db.execSQL("update ThreadInfo set start = ? and finish = ? where url = ?",
                 new Object[]{start,finish,url});

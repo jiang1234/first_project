@@ -46,8 +46,10 @@ public class DownloadService extends Service{
     private ThreadInfo threadInfo;
 
     private FileInfo fileInfo;
-    private int start,fileLength,sumread;
+    private int sumread,finish;
+    private long start,fileLength;
     private Dao ThreadInfoDao;
+    File file;
     Messenger Rmessenger;
     Messenger messenger = new Messenger(new Handler(){
         public void handleMessage(Message message){
@@ -61,6 +63,8 @@ public class DownloadService extends Service{
         public void handleMessage(Message message){
             Log.i("what","0");
             if(message.what == INIT){
+                threadInfo = (ThreadInfo) message.obj;
+                sumread = message.arg1;
                 DownloadThread();
             }
         }
@@ -98,13 +102,14 @@ public class DownloadService extends Service{
                 Log.i("url",threadInfo.getUrl());
                 Log.i("path",threadInfo.getPath());
             }
+
             InitDownloadThread initDownloadThread = new InitDownloadThread(threadInfo, handler);
             initDownloadThread.start();
         }
         if(ACTION_PAUSE == intent.getAction()){
             isPause = true;
             ThreadInfoDao = new Dao(DownloadService.this);
-            ThreadInfoDao.updateThreadInfo(start,sumread,threadInfo.getUrl());
+            ThreadInfoDao.updateThreadInfo(start,finish,threadInfo.getUrl());
             isPause = false;
         }
         if(ACTION_DELETE == intent.getAction()){
@@ -113,10 +118,21 @@ public class DownloadService extends Service{
         }
         if(ACTION_REDOWNLOAD == intent.getAction()){
             delete();
+            sumread = 0;
             long addResult = downloadDao.insertThreadInfo(fileInfo.getUrl(),fileInfo.getPath(),fileInfo.getStart(),fileInfo.getFinish(),fileInfo.getLength());
             threadInfo = new ThreadInfo(fileInfo.getUrl(),fileInfo.getPath(),fileInfo.getStart(),fileInfo.getFinish(),fileInfo.getLength());
             InitDownloadThread initDownloadThread = new InitDownloadThread(threadInfo, handler);
             initDownloadThread.start();
+            //List downloadList = downloadDao.findThreadInfo(fileInfo.getUrl());
+            //Log.i("线程数量",String.valueOf(downloadList.size()));
+            //Log.i("名字1",fileInfo.getPath());
+            //如果不存在则添加
+
+                //threadInfo = (ThreadInfo) downloadList.get(downloadList.size()-1);
+                //Log.i("url",threadInfo.getUrl());
+               // Log.i("path",threadInfo.getPath());
+
+           // DownloadThread();
         }
         return super.onStartCommand(intent,flags,startId);
     }
@@ -125,15 +141,9 @@ public class DownloadService extends Service{
         isdelete = true;
         int result =downloadDao.deleteThreadInfo(fileInfo.getUrl());
         Log.i("numdelete",String.valueOf(result));
-        String sourceUrl = threadInfo.getUrl();
-        try {
-            URL url = new URL(sourceUrl);
-            HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
-            URL absurl = urlConn.getURL();
-            String fileName = absurl.getFile().substring(absurl.getFile().lastIndexOf("/") + 1, absurl.getFile().length());
-            File file = new File(fileInfo.getPath() +"/"+fileName);
-            //Log.i("fileexist",Boolean.valueOf(file.exists()));
-            if (file.exists() && file.isFile()) {
+
+            Log.i("fileexist",String.valueOf(file.exists()));
+            if (file.exists()) {
                 Log.i("existfile","1");
                 file.delete();
             }
@@ -146,11 +156,7 @@ public class DownloadService extends Service{
             }catch (RemoteException e){
                 e.printStackTrace();;
             }
-        }catch(MalformedURLException e){
-            e.printStackTrace();
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
+
         isdelete = false;
     }
 
@@ -158,13 +164,14 @@ public class DownloadService extends Service{
          new Thread(new Runnable() {
              @Override
              public void run() {
-                 Log.i("开始线程","开始线程");
+                 Log.i("开始线程206","开始线程");
                  String sourceUrl = threadInfo.getUrl();
                  try {
                      URL url = new URL(sourceUrl);
                      HttpURLConnection urlConn = (HttpURLConnection)url.openConnection();
+
                      start = threadInfo.getStart() + threadInfo.getFinish();
-                     Log.i("start",String.valueOf(sourceUrl));
+                     //Log.i("start",String.valueOf(sourceUrl));
                      //Log.i("fileLength1",String.valueOf(urlConn.getContentLength()));
                      //取得的线程中是否有文件有关的信息，若有直接读取，否则初始化
                      if(threadInfo.getLength() == 0)
@@ -176,6 +183,9 @@ public class DownloadService extends Service{
                      //Log.i("fileLength",String.valueOf(urlConn.getContentLength()));
                      //
                      //Log.i("getResponseCode",String.valueOf(urlConn.getResponseCode()));
+                     Log.i("start",String.valueOf(threadInfo.getStart()));
+                     Log.i("getFinish",String.valueOf(threadInfo.getFinish()));
+                     Log.i("fileLength",String.valueOf(fileLength));
                      urlConn.setRequestProperty("Range","bytes=" + start + "-" + fileLength);
                      Log.i("getResponseCode",String.valueOf(urlConn.getResponseCode()));
                      //urlConn调用之后函数的操作不能在setRequestProperty之前，要不然会说不能在conn连接打开之后进行setRequestProperty
@@ -190,7 +200,8 @@ public class DownloadService extends Service{
                          String fileName = absurl.getFile().substring(absurl.getFile().lastIndexOf("/")+1,absurl.getFile().length());
                          //String fileName = "1.apk";
                          Log.i("fileName",fileName);
-                         File file = new File(path, fileName);
+                          file = new File(path, fileName);
+                         Log.i("fileexistdonwload",String.valueOf(file.exists()));
                          RandomAccessFile raf = new RandomAccessFile(file, "rwd") ;
                          raf.seek(start);
                          //finish = threadInfo.getFinish();
@@ -204,17 +215,24 @@ public class DownloadService extends Service{
                              }else{
                                  raf.write(buf,0,numread);
                                  sumread += numread;
+                                 finish += numread;
                                  //message.what = 1;
                                  //message.arg1 = sumread*100/fileLength;
                                  Message Smessage = Message.obtain();
                                  Smessage.what = SEND;
-                                 Smessage.arg1 = sumread*100/fileLength;
+                                 Smessage.arg1 = sumread*100/(int)fileLength;
+
                                  //Log.i("sumread",String.valueOf(sumread));
                                  try{
                                      Rmessenger.send(Smessage);
                                  }catch (RemoteException e){
                                      e.printStackTrace();;
                                  }
+                                 if(isPause||isdelete){
+                                     //downloadDao.updateThreadInfo(start,finish,sourceUrl);
+                                     break;
+                                 }
+
 
                              }
                          }

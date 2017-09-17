@@ -9,14 +9,14 @@ import java.io.File;
 public class ThreadInfo {
     private String url;
     private String path;
-    private int start;
-    private int finish;
-    private int length;
+    private long start;
+    private long finish;
+    private long length;
 
     public ThreadInfo(){
 
     }
-    public ThreadInfo(String url,String path,int start,int finish,int length){
+    public ThreadInfo(String url,String path,long start,long finish,long length){
         this.url = url;
         this.path = path;
         this.start = start;
@@ -27,22 +27,22 @@ public class ThreadInfo {
         this.url = url;
     }
     public void setPath(String path) {this.path = path;}
-    public void setStart(int start){this.start = start;}
-    public void setFinish(int finish){this.finish = finish;}
-    public void setLength(int length){this.length = length;}
+    public void setStart(long start){this.start = start;}
+    public void setFinish(long finish){this.finish = finish;}
+    public void setLength(long length){this.length = length;}
     public String getUrl(){
         return this.url;
     }
     public String getPath(){
         return this.path;
     }
-    public int getFinish(){
+    public long getFinish(){
         return this.finish;
     }
-    public int getLength(){
+    public long getLength(){
         return this.length;
     }
-    public int getStart(){
+    public long getStart(){
         return this.start;
     }
 }
