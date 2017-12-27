@@ -28,7 +28,7 @@ public class Dao {
         dbhelper = new dbHelper(context);
     }
     //第二部，编写对应的添加/删除/查找的方法
-    public long insertThreadInfo (String url, String path, long start, long finish, long length){
+    public long insertThreadInfo (String url, String path, long start, long finish, long length, int state){
         SQLiteDatabase sqLiteDatabase = dbhelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("url",url);
@@ -36,6 +36,7 @@ public class Dao {
         values.put("start",start);
         values.put("finish",finish);
         values.put("length",length);
+        values.put("state",state);
         long result = sqLiteDatabase.insert("ThreadInfo",null,values);
         sqLiteDatabase.close();
         return result;
@@ -58,15 +59,29 @@ public class Dao {
             threadInfo.setStart(cursor.getInt(cursor.getColumnIndex("start")));
             threadInfo.setFinish(cursor.getInt(cursor.getColumnIndex("finish")));
             threadInfo.setLength(cursor.getInt(cursor.getColumnIndex("length")));
+            threadInfo.setState(cursor.getInt(cursor.getColumnIndex("state")));
             list.add(threadInfo);
         }
         cursor.close();
         sqLiteDatabase.close();
         return list;
     }
-    public void updateThreadInfo (long start,long finish,String url){
+    public void updateThreadInfo (long start,long finish,String url,int state){
         SQLiteDatabase db = dbhelper.getWritableDatabase();
-        db.execSQL("update ThreadInfo set start = ? and finish = ? where url = ?",
-                new Object[]{start,finish,url});
+        db.execSQL("update ThreadInfo set start = ?,state =? and finish = ? where url = ?",
+                new Object[]{start,finish,url,state});
+    }
+    public int updateThreadInfoState (String url,int state){
+        Log.i("gengxin",">>>>>>>>>>>>>>>>>");
+        SQLiteDatabase sqLiteDatabase = dbhelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("state",state);
+
+        int result = sqLiteDatabase.update("ThreadInfo",values,"url=?",new String[]{url});
+        sqLiteDatabase.close();
+        return result;
+        //db.execSQL("update ThreadInfo set state =? where url = ?",
+            //    new Object[]{url,state});
+
     }
 }

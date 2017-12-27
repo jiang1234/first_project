@@ -3,6 +3,7 @@ package com.ali.download.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 /**
  * Created by jiang on 2017/8/20.
@@ -18,8 +19,10 @@ public class dbHelper extends SQLiteOpenHelper {
             + "path text,"
             + "start integer,"
             + "finish integer,"
-            + "length integer)";
+            + "length integer,"
+            + "state integer)";
     private final static String DropTable = "drop table if exists ThreadInfo";
+    //1正在下载 0未下载 2暂停 3删除 4完成
     // 第一步，编写构造函数
     public dbHelper(Context context){
         /**
@@ -36,6 +39,8 @@ public class dbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(SQLiteDatabase db){
+        Log.i("drop","________");
+        db.execSQL(DropTable);
         db.execSQL(CreateTable);
     }
     /**

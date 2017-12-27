@@ -1,9 +1,13 @@
 package com.ali.download.service;
 
+import android.content.ContentValues;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.ali.download.Download;
+import com.ali.download.db.Dao;
 import com.ali.download.entites.FileInfo;
 import com.ali.download.entites.ThreadInfo;
 
@@ -13,6 +17,8 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.R.id.message;
 
@@ -23,14 +29,14 @@ import static android.R.id.message;
 
 public class InitDownloadThread extends Thread {
     private ThreadInfo threadInfo;
-    private int fileLength;
+    private long fileLength;
     private Handler handler;
     public InitDownloadThread(ThreadInfo threadInfo, Handler handler){
         this.threadInfo = threadInfo;
         this.handler = handler;
     }
     private long start = 0;
-    private int sumread = 0;
+    private long sumread = 0;
 
 
     @Override
@@ -47,14 +53,17 @@ public class InitDownloadThread extends Thread {
                 File path = new File(threadInfo.getPath());
                 URL absurl = urlConn.getURL();
                 //String fileName = absurl.getFile();
-                String fileName = absurl.getFile().substring(absurl.getFile().lastIndexOf("/")+1,absurl.getFile().length());
-                Log.i("fileName",fileName);
+                String fileName1 = absurl.getFile().substring(absurl.getFile().lastIndexOf("/")+1);
+                String fileName = fileName1.substring(0,fileName1.lastIndexOf("?"));
+                //Log.i("fileName1…………",fileName1);
+                //Log.i("fileName2…………",fileName);
                 File file = new File(path, fileName);
                 Log.i("fileexistInit",String.valueOf(file.exists()));
                 if(file.exists()){
                     start = file.length();
+
                     Log.i("start init",String.valueOf(file.length()));
-                    sumread = (int)start;
+                    sumread = start;
                 }
                 threadInfo.setStart(start);
                 //RandomAccessFile raf = new RandomAccessFile(file,"rwd");
@@ -62,9 +71,18 @@ public class InitDownloadThread extends Thread {
                 //raf.close();
                 urlConn.disconnect();
                 Message message = Message.obtain();
-                message.obj = threadInfo;
+                Map values = new HashMap();
+                values.put("threadInfo",threadInfo);
+                values.put("fileName",fileName);
                 message.what = 0;
-                message.arg1 = sumread;
+                //message.arg1 = sumread;
+                //message.arg2 = fileLength;
+                if(sumread == fileLength)
+                {
+                    message.arg1 = 1;
+                    DownloadService.setHaveDownload(true);
+                }
+                message.obj = values;
                 handler.sendMessage(message);
 
             }

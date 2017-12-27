@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 public class FileInfo implements Serializable{
     private String url;
-    private String fileName;
+    private String fileName = "aaa";
     private String path;
     private long start;
     private long finish;
@@ -42,5 +42,7 @@ public class FileInfo implements Serializable{
     public long getStart(){
         return this.start;
     }
+    public String getFileName(){return this.fileName;}
     public void setLength(long length){this.length = length;}
+    public void setFileName(String fileName){this.fileName = fileName;}
 }
