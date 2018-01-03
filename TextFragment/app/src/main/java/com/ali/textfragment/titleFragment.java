@@ -16,6 +16,7 @@ public class titleFragment extends Fragment {
     private Button hey;
     @Override
     public View onCreateView(LayoutInflater inflater,ViewGroup container,Bundle savedInstanceState){
+        TextV
         View view = inflater.inflate(R.layout.title_fragment,container,false);
         hey = (Button) view.findViewById(R.id.hey);
         hey.setOnClickListener(new View.OnClickListener() {

@@ -57,12 +57,13 @@ public class Download extends AppCompatActivity implements OnClickListener{
     private final static int REVICER = 2;
     private final static int INIT = 0;
     private int downloadNum = 0;
-
+    
 
     Messenger Rmessenger = new Messenger(new Handler(){
         @Override
         public void handleMessage(Message message){
             if(message.what == SEND){
+
 
                 downloadBar.setProgress(message.arg1);
                 String fileName = (String)message.obj;
@@ -98,6 +99,7 @@ public class Download extends AppCompatActivity implements OnClickListener{
             Log.i("disconnected","disconnected");
         }
     };
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
